@@ -13,12 +13,16 @@ class HashTable {
     this.limit *= 2;
     const oldStorage = this.storage;
     this.storage = new LimitedArray(this.limit);
-    oldStorage.each((bucket) => {
-     while (!(bucket.head === null)) {
-       const removal = bucket.removalNode();
-       this.insert(Object.entries(removal)[0][0], Object.entries(removal)[0][1]);
-     }
-    });
+    const keys = [];
+    for (let i = 0; i < oldStorage.length; i++) {
+      if (oldStorage.storage[i] !== undefined) {
+        let nowNode = oldStorage.storage[i].head;
+        while (nowNode !== null) {
+          keys.push([nowNode.value[0], nowNode.value[1]]);
+          nowNode = nowNode.next;
+        }
+      }
+    }
   }
 
   capacityIsFull() {
@@ -29,49 +33,54 @@ class HashTable {
     return fullCells / this.limit >= 0.75;
   }
 
-  // Adds the given key, value pair to the hash table
-  // Fetch the bucket associated with the given key using the getIndexBelowMax function
-  // If no bucket has been created for that index, instantiate a new bucket and add the key, value pair to that new bucket
-  // If the key already exists in the bucket, the newer value should overwrite the older value associated with that key
   insert(key, value) {
     if (this.capacityIsFull()) this.resize();
     const index = getIndexBelowMax(key.toString(), this.limit);
-    let bucket = this.storage.get(index) || new LinkedList();
+    const bucket = this.storage.get(index) || new LinkedList();
     const addBucket = new LinkedList();
-    addBucket.insertNode(key,value);
-    while(!bucket.head) {
+    addBucket.insertNode(key, value);
+    while (!bucket.head) {
       const removal = bucket.removalNode();
-      if (!removal in key) {
-        addBucket.insertNode(Object.entries(removal)[0][0], Object.entries(removal))[0][1];
+      if (removal in key) {
+        addBucket.insertNode(Object.entries(removal)[0][0], Object.entries(removal)[0][1]);
       }
     }
     this.storage.set(index, addBucket);
   }
-  // Removes the key, value pair from the hash table
-  // Fetch the bucket associated with the given key using the getIndexBelowMax function
-  // Remove the key, value pair from the bucket
+
   remove(key) {
     const index = getIndexBelowMax(key.toString(), this.limit);
-    let bucket = this.storage.get(index);
+    const bucket = this.storage.get(index);
 
-    if (bucket) {
-      bucket = bucket.filter(item => item[0] !== key);
-      this.storage.set(index, bucket);
+    if (!bucket) return this;
+    const insertBucket = new LinkedList();
+    while (!bucket.head === null) {
+      const removeBucket = bucket.removalNode();
+      if (key in removeBucket) {
+        insertBucket.insertNode(Object.entries(removeBucket)[0][1], Object.entries(removeBucket)[0][1]);
+      }
+      this.storage.set(index, insertBucket);
     }
   }
-  // Fetches the value associated with the given key from the hash table
-  // Fetch the bucket associated with the given key using the getIndexBelowMax function
-  // Find the key, value pair inside the bucket and return the value
+
   retrieve(key) {
     const index = getIndexBelowMax(key.toString(), this.limit);
     const bucket = this.storage.get(index);
+    if (!bucket) return undefined;
+    const insertBucket = new LinkedList();
     let retrieved;
-    if (bucket) {
-      retrieved = bucket.filter(item => item[0] === key)[0];
-    }
 
-    return retrieved ? retrieved[1] : undefined;
+    while (!bucket.head) {
+      const removal = bucket.removalNode();
+      if (key in removal) {
+        retrieved = removal[key];
+      }
+      insertBucket.insertNode(Object.entries(removal)[0][0], Object.entries(removal)[0][1]);
+    }
+    this.storage.set(index, insertBucket);
+    return retrieved;
   }
 }
+
 
 module.exports = HashTable;

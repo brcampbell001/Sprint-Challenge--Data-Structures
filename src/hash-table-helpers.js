@@ -1,7 +1,6 @@
 // A special array class that can only store the number of items specified by the `limit` argument
 class LimitedArray {
   constructor(limit) {
-
     this.storage = [];
     this.limit = limit;
   }
@@ -46,51 +45,49 @@ const getIndexBelowMax = (str, max) => {
 };
 
 class linkedList {
-  constructor(options) {
+  constructor() {
     this.head = null;
     this.tail = null;
-    this.size = 0;
   }
 
   insertNode(key, value) {
-
     const newNode = {};
     newNode[key] = value;
     newNode.next = null;
 
-    if (!this.head) {
+    if (this.head === null) {
       this.head = newNode;
       this.tail = newNode;
     } else {
       this.tail.next = newNode;
       this.tail = newNode;
     }
+    return;
   }
 
-  removalNode(key) {
-
-    if (!this.head) {
-      return null;
+  removalNode() {
+    if (!this.head) return null;
+    if (!this.head.next) {
+      const removal = this.head;
+      this.head = null;
+      this.tail = null;
+      return removal.value;
     }
 
     const removal = this.head;
     this.head = this.head.next;
     return removal.value;
-
-    }
+  }
 
   contains(value) {
-
-  if (!this.head);
-  return false;
-
-  const searchLinkedList = (node) => {
-    if (node.value === value) return true;
-    if (node.next === null) return false;
-    return searchLinkedList(node.next);
-  };
-  return searchLinkedList(this.head;)
-}
+    if (!this.head) return false;
+    const searchLinkedList = (node) => {
+      if (node.value === value) return true;
+      if (node.next === null) return false;
+      return searchLinkedList(node.next);
+    };
+    return searchLinkedList(this.head);
+  }
 }
 
 module.exports = {
